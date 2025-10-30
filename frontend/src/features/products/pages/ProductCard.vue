@@ -23,12 +23,17 @@ const props = defineProps({ product: Object });
 const router = useRouter();
 
 const thumb = computed(() => {
-  if (props.product?.categories && props.product.categories.length) {
-  }
-  return props.product?.thumbnail_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(props.product.product_name||'P')}&background=FFD600&color=000000`;
+  // prefer thumbnail_url from backend; otherwise generate avatar
+  return props.product?.thumbnail_url ||
+    `https://ui-avatars.com/api/?name=${encodeURIComponent(props.product?.product_name || 'P')}&background=FFD600&color=000000`;
 });
 
 function goToProduct() {
-  router.push({ name: "product-show", params: { id: props.product.product_uuid } });
+  // make sure route name exists (we added it). Use path fallback just in case:
+  if (router.resolve({ name: "product-show", params: { id: props.product.product_uuid } }).matched.length) {
+    router.push({ name: "product-show", params: { id: props.product.product_uuid } });
+  } else {
+    router.push(`/products/${props.product.product_uuid}`);
+  }
 }
 </script>

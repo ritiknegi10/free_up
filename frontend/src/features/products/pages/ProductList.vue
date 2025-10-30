@@ -16,7 +16,7 @@
 
       <v-col
         v-for="p in products"
-        :key="p.product_uuid"
+        :key="p.product_uuid"x`
         cols="12"
         sm="6"
         md="4"

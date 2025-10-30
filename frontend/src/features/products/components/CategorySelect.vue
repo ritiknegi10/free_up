@@ -1,4 +1,3 @@
-
 <template>
   <v-combobox
     v-model="selected"
@@ -36,7 +35,6 @@ let timer;
 function onSearch(q) {
   clearTimeout(timer);
   if (!q || q.length < 1) {
-    // do not fetch until user types
     options.value = [];
     return;
   }
@@ -44,7 +42,7 @@ function onSearch(q) {
     loading.value = true;
     try {
       const res = await autoCompleteCategories(q, 8);
-      options.value = res;
+      options.value = res || [];
     } catch {
       options.value = [];
     } finally {

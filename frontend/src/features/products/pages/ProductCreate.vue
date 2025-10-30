@@ -8,8 +8,12 @@
             <v-form ref="formRef" @submit.prevent="submit">
               <v-text-field v-model="form.product_name" label="Product name" required />
               <v-textarea v-model="form.description" label="Description" rows="3" />
-              <brand-autocomplete v-model="form.brand_id" />
+              <brand-autocomplete
+                v-model:brandId="form.brand_id"
+                v-model:brandName="form.brand_name"
+              />
               <category-select v-model="form.categories" />
+              <v-text-field v-model.number="form.price" label="Price" type="number" min="0" />
               <v-select
                 v-model="form.target_audience"
                 :items="['male','female','kids','unisex']"
@@ -38,31 +42,36 @@
 <script setup>
 import { ref } from "vue";
 import { useStore } from "vuex";
+import { useRouter } from "vue-router";
 import { toast } from "vue3-toastify";
 import "vue3-toastify/dist/index.css";
 
 import BrandAutocomplete from "../components/BrandAutoComplete.vue";
 import CategorySelect from "../components/CategorySelect.vue";
 
+const store = useStore();
+const router = useRouter();
+const formRef = ref(null);
+const loading = ref(false);
+const files = ref([]);
+
 const form = ref({
   product_name: "",
   description: "",
   brand_id: null,
-  brand_name: null, 
+  brand_name: null,
   categories: [],
   condition: "used",
   status: "available",
+  price: 0,
   available_quantity: 1,
   target_audience: "unisex",
 });
-const files = ref([]);
-const loading = ref(false);
-const formRef = ref(null);
-const store = useStore();
 
 async function submit() {
   loading.value = true;
   try {
+    // Build payload: send categories as array (can be ids or names)
     const payload = {
       product_name: form.value.product_name,
       description: form.value.description,
@@ -71,20 +80,23 @@ async function submit() {
       categories: form.value.categories,
       condition: form.value.condition,
       status: form.value.status,
+      price: form.value.price,
       available_quantity: form.value.available_quantity,
       target_audience: form.value.target_audience,
     };
 
+    // Create product
     const created = await store.dispatch("products/create", {
       productPayload: payload,
-      files: files.value,
+      files: files.value, // files is array of File objects
     });
 
     toast.success("Product created");
-    // redirect to product list or product page
-    router.push({ name: 'product-list' })
+    router.push({ name: "product-list" });
   } catch (err) {
+    // show backend Joi errors and other messages
     toast.error(err.response?.data?.message || err.message || "Create failed");
+    console.error("Create product error:", err);
   } finally {
     loading.value = false;
   }
